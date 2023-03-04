@@ -1,0 +1,9 @@
+.mine {
+    color: black;
+    width: 65px;
+    height: 65px;
+}
+
+.notMine {
+    background-color: cadetblue;
+}
