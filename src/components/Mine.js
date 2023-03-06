@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 
 import { MineInfoContext, CLICK_CELL, CLICK_FLAG } from "../lib/MineInfoContext";
-import { STATUS, ICON } from "../lib/variables";
+import { STATUS, ICON, ARND_COLORS } from "../lib/variables";
 import { Button } from "./common/Button";
 
 import styles from './styles/Mine.module.css';
@@ -31,12 +31,13 @@ const Mine = ({ id }) => {
     dispatch({ type: CLICK_FLAG, id });
   }
 
-  const style = `${styles.mine} `; /// 숫자에 따라 달라지게
-
   return (
     <Button 
-      style={`${styles.mine}` + (halted && status === STATUS.NONE_ON_FLAG ? ` ${styles.notMine}` : ``)}
-      
+      className={[
+          (halted && status === STATUS.NONE_ON_FLAG ? ` ${styles.notMine}` : ``),
+          (status === STATUS.OPEN ? ` ${styles.open}` : ` ${styles.close}`),
+        ].join(' ')}
+      fontColor={ARND_COLORS[arndMine]}
       disabled={halted}
       onClick={onClick}
       onContextMenu={onContextMenu}

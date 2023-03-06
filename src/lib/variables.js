@@ -17,7 +17,20 @@ export const STATUS = {
 
 export const ICON = (arndMine) => ({
     [STATUS.CLOSE]: "",
-    [STATUS.OPEN]: arndMine === MINE ? "💣" : arndMine,
+    [STATUS.OPEN]: arndMine === MINE ? "💣" : arndMine === 0 ? "" : arndMine,
     [STATUS.FLAG]: "🚩",
     [STATUS.BOARD_ON_BOOM]: "💥",
 });
+
+export const ARND_COLORS = {
+    [-1]: "black", // -1
+    [0]: "black", // 0
+    [1]: "blue", // 1
+    [2]: "green", // 2
+    [3]: "red", // 3
+    [4]: "blueviolet", // 4
+    [5]: "tomato", // 5
+    [6]: "burlywood", // 6
+    [7]: "cyan", // 7
+    [8]: "pink", // 8
+};

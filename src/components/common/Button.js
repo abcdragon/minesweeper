@@ -1,9 +1,12 @@
 import styles from "./Button.module.css";
 
-export const Button = ({ style, value, disabled, onClick, onContextMenu, onMouseEnter, onMouseLeave }) => {
+export const Button = ({ className, fontColor, value, disabled, onClick, onContextMenu, onMouseEnter, onMouseLeave }) => {
     return (
         <button
-            className={`${styles.Btn} ` + (style !== undefined ? `${style}` : ``)}
+            className={[styles.Btn, (className ? className : '')].join(' ')}
+            style={{
+                "color": fontColor,
+            }}
             onClick={onClick}
             disabled={disabled}
             onContextMenu={onContextMenu}
