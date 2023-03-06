@@ -12,7 +12,6 @@ export const Header = () => {
             <Timer />
             <h1>{mineInfo.halted ? "지뢰를 밟았습니다...." : `남은 지뢰 : ${mineInfo.flag}`}</h1>
             <ResetButton />
-            
         </div>
     );
 }

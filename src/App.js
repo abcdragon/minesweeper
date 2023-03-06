@@ -1,5 +1,4 @@
 import { MineInfoProvider } from './lib/MineInfoContext';
-import { ResetButton } from './components/ResetButton';
 import MineMap from './components/MineMap';
 
 import { Header } from './components/Header';

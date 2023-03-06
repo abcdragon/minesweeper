@@ -10,12 +10,9 @@ export const createMineInfo = () => {
         status: STATUS.CLOSE,
     }));
 
-    let idx = 0;
-    const arr = [0, 14, 19, 23, 29, 30, 32, 44, 72, 78];
-
-    let cnt = 9 //10;
-    while(cnt >= 0) {
-        const rndId = arr[cnt]; //Math.floor(Math.random() * 81);
+    let cnt = 10;
+    while(cnt) {
+        const rndId = Math.floor(Math.random() * 81);
         // 이미 지뢰면 넘어가기
         if(board[rndId].arndMine === MINE) continue;
         
