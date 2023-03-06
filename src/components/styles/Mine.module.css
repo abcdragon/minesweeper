@@ -1,7 +1,9 @@
-.mine {
-    color: black;
-    width: 65px;
-    height: 65px;
+.close {
+    background-color: ivory;
+}
+
+.open {
+    background-color: white;
 }
 
 .notMine {

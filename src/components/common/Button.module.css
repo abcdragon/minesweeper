@@ -1,6 +1,10 @@
 .Btn {
-    border: 10px;
+    border-width: 2px;
     border-radius: 5px;
+    border-color: black;
+
+    width: 65px;
+    height: 65px;
 
     padding: 5px;
     margin: 1px;
