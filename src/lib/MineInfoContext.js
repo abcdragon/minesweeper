@@ -2,13 +2,14 @@ import { createContext, useReducer } from "react"
 
 import { createMineInfo } from "./func";
 
-import { MINE, STATUS } from './variables';
+import { MINE, STATUS, GAME_STATE } from './variables';
 
-const initialState = {
+const initialState = () => ({
     board: createMineInfo(),
     flag: 10,
-    halted: false,
-}
+    flagCell: [],
+    game_state: GAME_STATE.BEFORE_START,
+});
 
 export const MineInfoContext = createContext(null);
 
@@ -23,6 +24,7 @@ const dx = [-1, 0, 1, -1, 1, -1, 0, 1];
 // 1. 승리 패턴이랑 2. 시간 넣으면 끝
 const reducer = (state, action) => {
     const { type, id } = action;
+
     const loseGame = () => {
         alert("boooom!");
         return {
@@ -30,7 +32,7 @@ const reducer = (state, action) => {
             board: state.board.map((cell, _id) => {
                 return cell.arndMine !== MINE ? cell : { ...cell, status: id === _id ? STATUS.BOARD_ON_BOOM : STATUS.OPEN };
             }),
-            halted: true,
+            game_state: GAME_STATE.BAD_END,
         };
     }
 
@@ -57,6 +59,74 @@ const reducer = (state, action) => {
         return ret;
     }
 
+    const clickCell = () => {
+        const change = new Set(), id_stack = [];
+        change.add(id);
+
+        // mine on flag / none on flag
+        const { mof, nof } = cntFlag(id);
+
+        // 깃발이 모두 올바르게 설치되었으면
+        if(state.board[id].arndMine === mof) {
+            for(let i = 0; i < 8; i++){
+                const [y, x] = [parseInt((id) / 9) + dy[i], id % 9 + dx[i]];
+                // 범위를 벗어나면 건너뛰고
+                if(y < 0 || y > 8 || x < 0 || x > 8) continue;
+                
+                // 이미 열렸으면 건너뛰고
+                if(state.board[y * 9 + x].status === STATUS.OPEN) continue;
+
+                // 깃발이면 건너뛰고
+                if(state.board[y * 9 + x].status & STATUS.FLAG) continue;
+
+                change.add(y * 9 + x);
+
+                // 지뢰가 없다면
+                if(state.board[y * 9 + x].arndMine === 0)
+                    id_stack.push(y * 9 + x);
+            }
+        }
+        
+        // 올바르게 설치되지 않은 깃발이 있으면
+        else if(state.board[id].arndMine === mof + nof) return loseGame();
+
+        // else(깃발이랑 보드가 다르면): 주변칸이 안 열림 == 그대로
+    
+        while(id_stack.length){
+            const _id = id_stack.pop();
+            change.add(_id);
+            
+            if(state.board[_id].arndMine !== 0) continue;
+
+            for(let i = 0; i < 8; i++){
+                const [y, x] = [parseInt((_id) / 9) + dy[i], _id % 9 + dx[i]];
+                // 범위를 벗어나면 건너뛰고
+                if(y < 0 || y > 8 || x < 0 || x > 8) continue;
+
+                // 이미 등록되어 있으면 건너뛰고
+                if(change.has(y * 9 + x)) continue;
+
+                // 지뢰면 건너뛰고
+                if(state.board[y * 9 + x].arndMine === MINE) continue;
+
+                // 이미 열렸으면 건너뛰고
+                if(state.board[y * 9 + x].status === STATUS.OPEN) continue;
+
+                // 깃발이면 건너뛰고
+                if(state.board[y * 9 + x].status & STATUS.FLAG) continue;
+
+                id_stack.push(y * 9 + x);
+            }
+        }
+
+        return {
+            ...state,
+            board: state.board.map((cell, _id) => {
+                return change.has(_id) ? { ...cell, status: STATUS.OPEN, } : cell;
+            }),
+        };
+    }
+
     switch(type){
         case CLICK_CELL:
             switch(state.board[id].status){
@@ -67,73 +137,15 @@ const reducer = (state, action) => {
                 // 지뢰를 눌렀으면
                 case STATUS.BOARD_ON_MINE: return loseGame();
 
-                // 열렸거나 닫히면
+                // 닫힌 / 열린 칸일 때
                 case STATUS.CLOSE:
-                case STATUS.OPEN:
-                    const change = new Set(), id_stack = [];
-                    change.add(id);
-
-                    const { mof, nof } = cntFlag(id);
-
-                    // 깃발이 모두 올바르게 설치되었으면
-                    if(state.board[id].arndMine === mof) {
-                        for(let i = 0; i < 8; i++){
-                            const [y, x] = [parseInt((id) / 9) + dy[i], id % 9 + dx[i]];
-                            // 범위를 벗어나면 건너뛰고
-                            if(y < 0 || y > 8 || x < 0 || x > 8) continue;
-                            
-                            // 이미 열렸으면 건너뛰고
-                            if(state.board[y * 9 + x].status === STATUS.OPEN) continue;
-
-                            // 깃발이면 건너뛰고
-                            if(state.board[y * 9 + x].status & STATUS.FLAG) continue;
-
-                            change.add(y * 9 + x);
-
-                            // 지뢰가 없다면
-                            if(state.board[y * 9 + x].arndMine === 0)
-                                id_stack.push(y * 9 + x);
-                        }
-                    }
-                    
-                    // 올바르게 설치되지 않은 깃발이 있으면
-                    else if(state.board[id].arndMine === mof + nof) return loseGame();
-
-                    // else(깃발이랑 보드가 다르면): 주변칸이 안 열림
-                
-                    while(id_stack.length){
-                        const _id = id_stack.pop();
-                        change.add(_id);
-                        
-                        if(state.board[_id].arndMine !== 0) continue;
-
-                        for(let i = 0; i < 8; i++){
-                            const [y, x] = [parseInt((_id) / 9) + dy[i], _id % 9 + dx[i]];
-                            // 범위를 벗어나면 건너뛰고
-                            if(y < 0 || y > 8 || x < 0 || x > 8) continue;
-
-                            // 이미 등록되어 있으면 건너뛰고
-                            if(change.has(y * 9 + x)) continue;
-
-                            // 지뢰면 건너뛰고
-                            if(state.board[y * 9 + x].arndMine === MINE) continue;
-
-                            // 이미 열렸으면 건너뛰고
-                            if(state.board[y * 9 + x].status === STATUS.OPEN) continue;
-
-                            // 깃발이면 건너뛰고
-                            if(state.board[y * 9 + x].status & STATUS.FLAG) continue;
-
-                            id_stack.push(y * 9 + x);
-                        }
-                    }
-
+                    if(state.game_state === GAME_STATE.PROCEED) return clickCell();
                     return {
-                        ...state,
-                        board: state.board.map((cell, _id) => {
-                            return change.has(_id) ? { ...cell, status: STATUS.OPEN, } : cell;
-                        }),
+                        ...clickCell(),
+                        game_state: GAME_STATE.PROCEED,
                     };
+                    
+                case STATUS.OPEN: return clickCell();
             
                 default:
                     return state;
@@ -157,12 +169,8 @@ const reducer = (state, action) => {
                         : state.flag - 1,
             };
 
-        case INIT_GAME:
-            return {
-                board: createMineInfo(),
-                flag: 10,
-                halted: false,
-            };
+        case INIT_GAME:                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+            return initialState();
 
         default:
             return state;
@@ -171,7 +179,7 @@ const reducer = (state, action) => {
 
 
 export const MineInfoProvider = ({ children }) => {
-    const [mineInfo, dispatch] = useReducer(reducer, initialState);
+    const [mineInfo, dispatch] = useReducer(reducer, initialState());
     const theme = {
         textAlign: "center",
         margin: "auto",   
