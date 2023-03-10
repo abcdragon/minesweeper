@@ -15,6 +15,15 @@ export const STATUS = {
     MINE_ON_FLAG: 18, // FLAG | 2 10010
 }
 
+export const GAME_STATE = {
+    BEFORE_START: 0,
+    PROCEED: 1,
+    
+    END: 4,
+    BAD_END: 5,
+    GOOD_END: 6,
+}
+
 export const ICON = (arndMine) => ({
     [STATUS.CLOSE]: "",
     [STATUS.OPEN]: arndMine === MINE ? "💣" : arndMine === 0 ? "" : arndMine,
