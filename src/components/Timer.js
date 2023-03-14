@@ -21,9 +21,8 @@ export const Timer = () => {
     }
 
     useEffect(() => {
-        if(game_state === GAME_STATE.PROCEED) startTick();
-        else endTick();
-
+        if(game_state === GAME_STATE.PROCEED) startTick(); // 진행중이면 킴
+        else if(game_state & GAME_STATE.END) endTick();
 
         if(game_state === GAME_STATE.BEFORE_START) setTime(0);
     }, [game_state]);
