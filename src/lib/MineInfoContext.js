@@ -7,7 +7,7 @@ import { MINE, STATUS, GAME_STATE } from './variables';
 const initialState = () => ({
     board: createMineInfo(),
     flag: 10,
-    flagCell: [],
+    rest_cell: 81,
     game_state: GAME_STATE.BEFORE_START,
 });
 
@@ -20,8 +20,6 @@ export const INIT_GAME = "INIT_GAME";
 const dy = [-1, -1, -1, 0, 0, 1, 1, 1];
 const dx = [-1, 0, 1, -1, 1, -1, 0, 1];
 
-
-// 1. 승리 패턴이랑 2. 시간 넣으면 끝
 const reducer = (state, action) => {
     const { type, id } = action;
 
@@ -34,6 +32,18 @@ const reducer = (state, action) => {
             }),
             game_state: GAME_STATE.BAD_END,
         };
+    }
+    
+    // 지뢰를 제외한 모든 칸이 열렸다면? ==> 승리
+    // 이 때, 지뢰인 칸은 모두 깃발 꽂힌 걸로 처리
+    // 그러면 깃발은 상관은 승리조건에 아무런 관련이 없다
+    const isWon = (rest_cell) => {
+        if(rest_cell === 10) {
+            alert("You win!!!");
+            return true;
+        }
+
+        return false;
     }
 
     const cntFlag = (id) => {
@@ -61,7 +71,9 @@ const reducer = (state, action) => {
 
     const clickCell = () => {
         const change = new Set(), id_stack = [];
-        change.add(id);
+        if(state.board[id].status === STATUS.CLOSE){
+            change.add(id);
+        }
 
         // mine on flag / none on flag
         const { mof, nof } = cntFlag(id);
@@ -121,9 +133,11 @@ const reducer = (state, action) => {
 
         return {
             ...state,
+            rest_cell: state.rest_cell - change.size,
             board: state.board.map((cell, _id) => {
-                return change.has(_id) ? { ...cell, status: STATUS.OPEN, } : cell;
+                return change.has(_id) ? { ...cell, status: STATUS.OPEN } : cell;
             }),
+            game_state: isWon(state.rest_cell - change.size) ? GAME_STATE.GOOD_END : state.game_state,
         };
     }
 
@@ -153,21 +167,17 @@ const reducer = (state, action) => {
 
         case CLICK_FLAG:
             return state.board[id].status === STATUS.OPEN ? state : {
-                ...state,
-                board: state.board.map((cell) => {
-                    return id !== cell.id ? cell : {
-                        ...cell,
-                        // 이미 flag가 세워져 있으면 CLOSE로
-                        status: cell.status & STATUS.FLAG
-                                ? STATUS.CLOSE
-                                : (cell.arndMine === MINE 
-                                    ? STATUS.MINE_ON_FLAG : STATUS.NONE_ON_FLAG),
-                    }
-                }),
-                flag: state.board[id].status & STATUS.FLAG
-                        ? state.flag + 1 
-                        : state.flag - 1,
-            };
+                    ...state,
+                    board: state.board.map((cell) => {
+                        return id !== cell.id ? cell : {
+                            ...cell,
+                            status: cell.status & STATUS.FLAG ? 
+                                STATUS.CLOSE : 
+                                (cell.arndMine === MINE ? STATUS.MINE_ON_FLAG : STATUS.NONE_ON_FLAG),
+                        }
+                    }),
+                    flag: state.flag + (state.board[id].status & STATUS.FLAG ? 1 : - 1),
+                }
 
         case INIT_GAME:                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
             return initialState();
